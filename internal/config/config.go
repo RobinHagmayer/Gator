@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 )
 
@@ -13,47 +12,50 @@ type Config struct {
 	CurrentUserName string `json:"current_user_name"`
 }
 
-func Read() Config {
-	path := getConfigFilePath()
+func Read() (Config, error) {
+	path, err := getConfigFilePath()
+	if err != nil {
+		return Config{}, err
+	}
 
 	data, err := os.ReadFile(path)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to read file:", err)
-		os.Exit(1)
+		return Config{}, err
 	}
 
 	config := Config{}
 	err = json.Unmarshal(data, &config)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to unpack JSON")
-		os.Exit(1)
+		return Config{}, err
 	}
 
-	return config
+	return config, nil
 }
 
-func (c *Config) SetUser(userName string) {
+func (c *Config) SetUser(userName string) error {
 	c.CurrentUserName = userName
-	path := getConfigFilePath()
+	path, err := getConfigFilePath()
+	if err != nil {
+		return err
+	}
 
 	data, err := json.Marshal(c)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to marshal JSON:", err)
-		os.Exit(1)
+		return err
 	}
 
 	if err := os.WriteFile(path, data, 0644); err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to write file:", err)
-		os.Exit(1)
+		return err
 	}
+
+	return nil
 }
 
-func getConfigFilePath() string {
+func getConfigFilePath() (string, error) {
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Could not find $HOME")
-		os.Exit(1)
+		return "", err
 	}
 
-	return userHomeDir + "/" + configFileName
+	return userHomeDir + "/" + configFileName, nil
 }
