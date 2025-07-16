@@ -1,13 +1,17 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 
 	"github.com/RobinHagmayer/Gator/internal/config"
+	"github.com/RobinHagmayer/Gator/internal/database"
+	_ "github.com/lib/pq"
 )
 
 type state struct {
+	db  *database.Queries
 	cfg *config.Config
 }
 
@@ -18,9 +22,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	programState := &state{cfg: &cfg}
+	db, err := sql.Open("postgres", cfg.DbUrl)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	dbQueries := database.New(db)
+
+	programState := &state{
+		db:  dbQueries,
+		cfg: &cfg,
+	}
+
 	cmds := commands{registeredCommands: make(map[string]func(*state, command) error)}
 	cmds.register("login", handlerLogin)
+	cmds.register("register", handlerRegister)
 
 	if len(os.Args) < 2 {
 		fmt.Fprintln(os.Stderr, "Error: to few arguments")
