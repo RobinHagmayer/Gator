@@ -66,7 +66,7 @@ func handlerReset(s *state, cmd command) error {
 	return nil
 }
 
-func handlerUser(s *state, cmd command) error {
+func handlerUsers(s *state, cmd command) error {
 	users, err := s.db.GetUsers(context.Background())
 	if err != nil {
 		return fmt.Errorf("Couldn't fetch all users: %w", err)
@@ -120,6 +120,28 @@ func handlerAddFeed(s *state, cmd command) error {
 	}
 
 	fmt.Printf("%+v\n", feed)
+
+	return nil
+}
+
+func handlerFeeds(s *state, cmd command) error {
+	feeds, err := s.db.GetFeeds(context.Background())
+	if err != nil {
+		return fmt.Errorf("Couldn't fetch all users: %w", err)
+	}
+
+	fmt.Println("================================================")
+	for _, feed := range feeds {
+		user, err := s.db.GetUserById(context.Background(), feed.UserID)
+		if err != nil {
+			return fmt.Errorf("Couldn't fetch user who added the feed: %w", err)
+		}
+
+		fmt.Printf("* Feed Name: %s\n", feed.Name)
+		fmt.Printf("* Feed URL:  %s\n", feed.Url)
+		fmt.Printf("* Added by:  %s\n", user.Name)
+		fmt.Println("================================================")
+	}
 
 	return nil
 }

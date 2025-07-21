@@ -16,4 +16,8 @@ WHERE name = $1 LIMIT 1;
 DELETE FROM users;
 
 -- name: GetUsers :many
-SELECT * from users;
+SELECT * FROM users;
+
+-- name: GetUserById :one
+SELECT * FROM users
+WHERE id = $1 LIMIT 1;
