@@ -61,7 +61,8 @@ func handlerReset(s *state, cmd command) error {
 	if err != nil {
 		return fmt.Errorf("Couldn't delete all users: %w", err)
 	}
-	fmt.Println("Deleted all users!")
+
+	fmt.Println("Successfully reset the DB!")
 	return nil
 }
 
@@ -89,5 +90,36 @@ func handlerAgg(s *state, cmd command) error {
 	}
 
 	fmt.Printf("%+v\n", rssFeed)
+	return nil
+}
+
+func handlerAddFeed(s *state, cmd command) error {
+	if len(cmd.args) != 2 {
+		return fmt.Errorf("Usage: %s <name> <url>", cmd.name)
+	}
+
+	feedName := cmd.args[0]
+	feedURL := cmd.args[1]
+	feedUser, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("Couldn't fetch current user: %w", err)
+	}
+
+	feedParams := database.CreateFeedParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Name:      feedName,
+		Url:       feedURL,
+		UserID:    feedUser.ID,
+	}
+
+	feed, err := s.db.CreateFeed(context.Background(), feedParams)
+	if err != nil {
+		return fmt.Errorf("Couldn't create a feed: %w", err)
+	}
+
+	fmt.Printf("%+v\n", feed)
+
 	return nil
 }
