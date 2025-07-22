@@ -93,7 +93,7 @@ func handlerAgg(s *state, cmd command) error {
 	return nil
 }
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.args) != 2 {
 		return fmt.Errorf("Usage: %s <feed_name> <feed_url>", cmd.name)
 	}
@@ -101,10 +101,6 @@ func handlerAddFeed(s *state, cmd command) error {
 	feedId := uuid.New()
 	feedName := cmd.args[0]
 	feedURL := cmd.args[1]
-	feedUser, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("Couldn't fetch current user: %w", err)
-	}
 
 	feedParams := database.CreateFeedParams{
 		ID:        feedId,
@@ -112,7 +108,7 @@ func handlerAddFeed(s *state, cmd command) error {
 		UpdatedAt: time.Now(),
 		Name:      feedName,
 		Url:       feedURL,
-		UserID:    feedUser.ID,
+		UserID:    user.ID,
 	}
 
 	feed, err := s.db.CreateFeed(context.Background(), feedParams)
@@ -124,7 +120,7 @@ func handlerAddFeed(s *state, cmd command) error {
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		UserID:    feedUser.ID,
+		UserID:    user.ID,
 		FeedID:    feedId,
 	}
 
@@ -161,14 +157,9 @@ func handlerFeeds(s *state, cmd command) error {
 	return nil
 }
 
-func handlerFollow(s *state, cmd command) error {
+func handlerFollow(s *state, cmd command, user database.User) error {
 	if len(cmd.args) != 1 {
 		return fmt.Errorf("Usage: %s <feed_url>", cmd.name)
-	}
-
-	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("Couldn't fetch current user: %w", err)
 	}
 
 	feed, err := s.db.GetFeedByUrl(context.Background(), cmd.args[0])
@@ -196,12 +187,7 @@ func handlerFollow(s *state, cmd command) error {
 	return nil
 }
 
-func handlerFollowing(s *state, cmd command) error {
-	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("Couldn't fetch current user: %w", err)
-	}
-
+func handlerFollowing(s *state, cmd command, user database.User) error {
 	feedFollows, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
 	if err != nil {
 		return fmt.Errorf("Couldn't fetch followed RSS feeds: %w", err)
