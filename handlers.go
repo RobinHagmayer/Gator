@@ -95,9 +95,10 @@ func handlerAgg(s *state, cmd command) error {
 
 func handlerAddFeed(s *state, cmd command) error {
 	if len(cmd.args) != 2 {
-		return fmt.Errorf("Usage: %s <name> <url>", cmd.name)
+		return fmt.Errorf("Usage: %s <feed_name> <feed_url>", cmd.name)
 	}
 
+	feedId := uuid.New()
 	feedName := cmd.args[0]
 	feedURL := cmd.args[1]
 	feedUser, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
@@ -106,7 +107,7 @@ func handlerAddFeed(s *state, cmd command) error {
 	}
 
 	feedParams := database.CreateFeedParams{
-		ID:        uuid.New(),
+		ID:        feedId,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		Name:      feedName,
@@ -116,9 +117,23 @@ func handlerAddFeed(s *state, cmd command) error {
 
 	feed, err := s.db.CreateFeed(context.Background(), feedParams)
 	if err != nil {
-		return fmt.Errorf("Couldn't create a feed: %w", err)
+		return fmt.Errorf("Couldn't create a RSS feed: %w", err)
 	}
 
+	feedFollowParams := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    feedUser.ID,
+		FeedID:    feedId,
+	}
+
+	_, err = s.db.CreateFeedFollow(context.Background(), feedFollowParams)
+	if err != nil {
+		return fmt.Errorf("Couldn't create a RSS feed following: %w", err)
+	}
+
+	fmt.Println("Feed added successfully!")
 	fmt.Printf("%+v\n", feed)
 
 	return nil
@@ -141,6 +156,65 @@ func handlerFeeds(s *state, cmd command) error {
 		fmt.Printf("* Feed URL:  %s\n", feed.Url)
 		fmt.Printf("* Added by:  %s\n", user.Name)
 		fmt.Println("================================================")
+	}
+
+	return nil
+}
+
+func handlerFollow(s *state, cmd command) error {
+	if len(cmd.args) != 1 {
+		return fmt.Errorf("Usage: %s <feed_url>", cmd.name)
+	}
+
+	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("Couldn't fetch current user: %w", err)
+	}
+
+	feed, err := s.db.GetFeedByUrl(context.Background(), cmd.args[0])
+	if err != nil {
+		return fmt.Errorf("Couldn't fetch RSS feed. Probably a wrong URL: %w", err)
+	}
+
+	feedFollowParams := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    user.ID,
+		FeedID:    feed.ID,
+	}
+
+	feedFollow, err := s.db.CreateFeedFollow(context.Background(), feedFollowParams)
+	if err != nil {
+		return fmt.Errorf("Couldn't create a feed following: %w", err)
+	}
+
+	fmt.Println("Feed follow created:")
+	fmt.Printf("* User: %s\n", feedFollow.UserName)
+	fmt.Printf("* Feed: %s\n", feedFollow.FeedName)
+
+	return nil
+}
+
+func handlerFollowing(s *state, cmd command) error {
+	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("Couldn't fetch current user: %w", err)
+	}
+
+	feedFollows, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
+	if err != nil {
+		return fmt.Errorf("Couldn't fetch followed RSS feeds: %w", err)
+	}
+
+	if len(feedFollows) == 0 {
+		fmt.Println("No RSS feed follows found for this user.")
+		return nil
+	}
+
+	fmt.Printf("Feed follows for user %s:\n", user.Name)
+	for _, feedFollow := range feedFollows {
+		fmt.Printf("* %s\n", feedFollow.FeedName)
 	}
 
 	return nil
