@@ -164,7 +164,7 @@ func handlerFollow(s *state, cmd command, user database.User) error {
 
 	feed, err := s.db.GetFeedByUrl(context.Background(), cmd.args[0])
 	if err != nil {
-		return fmt.Errorf("Couldn't fetch RSS feed. Probably a wrong URL: %w", err)
+		return fmt.Errorf("Couldn't fetch RSS feed: %w", err)
 	}
 
 	feedFollowParams := database.CreateFeedFollowParams{
@@ -202,6 +202,31 @@ func handlerFollowing(s *state, cmd command, user database.User) error {
 	for _, feedFollow := range feedFollows {
 		fmt.Printf("* %s\n", feedFollow.FeedName)
 	}
+
+	return nil
+}
+
+func handlerUnfollow(s *state, cmd command, user database.User) error {
+	if len(cmd.args) != 1 {
+		return fmt.Errorf("Usage: %s <feed_url>", cmd.name)
+	}
+
+	feed, err := s.db.GetFeedByUrl(context.Background(), cmd.args[0])
+	if err != nil {
+		return fmt.Errorf("Couldn't fetch RSS feed: %w", err)
+	}
+
+	err = s.db.DeleteFeedFollow(context.Background(), database.DeleteFeedFollowParams{
+		UserID: user.ID,
+		FeedID: feed.ID,
+	})
+	if err != nil {
+		return fmt.Errorf("Couldn't delete RSS feed follow: %w", err)
+	}
+
+	fmt.Println("Successfully unfollowed RSS feed:")
+	fmt.Printf("* User: %s\n", user.Name)
+	fmt.Printf("* Feed: %s\n", feed.Name)
 
 	return nil
 }
