@@ -19,6 +19,7 @@ Subscribe to blogs, podcasts, or news sites, auto-fetch new posts into PostgreSQ
 ## Installation
 
 TODO
+`go build -o gator`
 
 ## Usage
 
