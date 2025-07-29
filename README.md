@@ -18,8 +18,23 @@ Subscribe to blogs, podcasts, or news sites, auto-fetch new posts into PostgreSQ
 
 ## Installation
 
-TODO
-`go build -o gator`
+How to install the Gator CLI on Linux:
+
+1. Clone the repository `git clone https://github.com/RobinHagmayer/Gator.git`
+2. Change into the directory and build the executable `go build -o gator`
+
+## Config
+
+To use this tool we need a `.gatorconfig.json` file inside your home directory.
+It stores the database connection and the current user.
+The application just needs the database connection to work.
+Change the variables to your configuration.
+
+```json
+{
+  "db_url": "postgres://username:password@localhost:5432/database?sslmode=disable"
+}
+```
 
 ## Usage
 
