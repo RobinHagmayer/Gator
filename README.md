@@ -60,7 +60,7 @@ All available commands:
 | `gator unfollow <feed_url>`            | Unfollow a feed                     |
 | `gator following`                      | List all followed feeds             |
 | `gator agg <time_between_requests>`    | Start the aggregation of blog posts |
-| `gator browse <limit>`                 | Browse the latest posts             |
+| `gator browse [<limit>]`               | Browse the latest posts (default 2) |
 
 ## Learning Goals
 
