@@ -14,7 +14,7 @@ Subscribe to blogs, podcasts, or news sites, auto-fetch new posts into PostgreSQ
 ## Prerequisites
 
 - Go 1.23+
-- PostgreSQL
+- PostgreSQL 16+
 
 ## Installation
 
@@ -38,7 +38,29 @@ Change the variables to your configuration.
 
 ## Usage
 
-TODO
+The general way to use Gator is `gator <command> [args...]`.
+
+The usual way to use the CLI works like this:
+
+1. Register a new user: `gator register <username>`
+2. Add a new RSS feed: `gator addfeed <feed_name> <feed_url>`
+3. Start the aggregator: `gator agg <time_between_requests>` (`gator agg 1m`)
+4. View the posts: `gator browse <posts_limit>`
+
+All available commands:
+
+| Command                                | Description                         |
+| -------------------------------------- | ----------------------------------- |
+| `gator register <user_name>`           | Register a new user                 |
+| `gator login <user_name>`              | Login an existing user              |
+| `gator users`                          | List all users                      |
+| `gator addfeed <feed_name> <feed_url>` | Add a new feed and follow it        |
+| `gator feeds`                          | List all feeds                      |
+| `gator follow <feed_url>`              | Follow an existing feed             |
+| `gator unfollow <feed_url>`            | Unfollow a feed                     |
+| `gator following`                      | List all followed feeds             |
+| `gator agg <time_between_requests>`    | Start the aggregation of blog posts |
+| `gator browse <limit>`                 | Browse the latest posts             |
 
 ## Learning Goals
 
