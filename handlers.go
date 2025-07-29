@@ -243,14 +243,12 @@ func handlerUnfollow(s *state, cmd command, user database.User) error {
 
 func handlerBrowse(s *state, cmd command, user database.User) error {
 	limit := 2
-	if len(cmd.args) != 1 {
-		return fmt.Errorf("Usage: %s <posts_limit>", cmd.name)
-	}
-
-	if specifiedLimit, err := strconv.Atoi(cmd.args[0]); err == nil {
-		limit = specifiedLimit
-	} else {
-		return fmt.Errorf("Invalid limit: %w", err)
+	if len(cmd.args) == 1 {
+		if specifiedLimit, err := strconv.Atoi(cmd.args[0]); err == nil {
+			limit = specifiedLimit
+		} else {
+			return fmt.Errorf("Invalid limit: %w", err)
+		}
 	}
 
 	posts, err := s.db.GetPostsByUser(context.Background(), database.GetPostsByUserParams{
